@@ -10,6 +10,8 @@ CREATE TABLE Users (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('admin', 'car_owner', 'renter')) NOT NULL,
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    licence_no VARCHAR(255) NOT NULL,
+    licence_picture VARCHAR(255),
     profile_picture VARCHAR(255),
     whatsapp_number VARCHAR(15) UNIQUE
 );
@@ -76,5 +78,36 @@ CREATE TABLE UserSubscriptions (
 
 ------------------------------ PHASE 2 ------------------------------------
 
+-- Incident Reports Table
+CREATE TABLE IncidentReports (
+    report_id SERIAL PRIMARY KEY,
+    booking_id INT REFERENCES Bookings(booking_id) ON DELETE CASCADE,
+    reporter_id INT REFERENCES Users(user_id) ON DELETE CASCADE,
+    description TEXT NOT NULL,
+    media TEXT[] DEFAULT '{}',
+    reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'Pending'
+);
+
+
+-- Toll Reports Table
+CREATE TABLE TollReports (
+    toll_report_id SERIAL PRIMARY KEY,
+    booking_id INT REFERENCES Bookings(booking_id) ON DELETE CASCADE,
+    reporter_id INT REFERENCES Users(user_id) ON DELETE CASCADE,
+    toll_location VARCHAR(255),
+    toll_amount DECIMAL(10, 2),
+    reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'Pending'
+);
+
+-- Updates Table
+CREATE TABLE JourneyUpdates (
+    update_id SERIAL PRIMARY KEY,
+    booking_id INT REFERENCES Bookings(booking_id) ON DELETE CASCADE,
+    update_type VARCHAR(50),
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 

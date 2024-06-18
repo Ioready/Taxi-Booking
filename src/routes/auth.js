@@ -47,10 +47,18 @@ router.get("/protected", userAuth, protected);
 //                Users Registration 
 
 // HOST
-router.post("/register_host", upload.single('profile_picture') , registerValidation, validationMiddleware, registerHost);
+// router.post("/register_host", upload.single('profile_picture') , registerValidation, validationMiddleware, registerHost);
+router.post("/register_host", upload.fields([
+  { name: 'profile_picture', maxCount: 1 },
+  { name: 'licence_picture', maxCount: 1 }
+]), registerValidation, validationMiddleware, registerHost);
+
+
 
 // Client
-router.post("/register_renter", upload.single('profile_picture') , registerValidation, validationMiddleware, registerRenter);
+router.post("/register_renter", upload.fields([
+  { name: 'profile_picture', maxCount: 1 },
+  { name: 'licence_picture', maxCount: 1 }]) , registerValidation, validationMiddleware, registerRenter);
 
 router.post("/login", loginValidation, validationMiddleware, login);
 router.get("/logout", logout);

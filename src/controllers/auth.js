@@ -5,7 +5,7 @@ const { SECRET } = require('../constants')
 
 exports.getUsers = async (req, res) => {
   try {
-    const { rows } = await db.query('select user_id, username, email, whatsapp_number, profile_picture, role from users')
+    const { rows } = await db.query('select user_id, username, email, whatsapp_number, licence_no, profile_picture, licence_picture, role from users')
 
     return res.status(200).json({
       success: true,
@@ -17,77 +17,97 @@ exports.getUsers = async (req, res) => {
 }
 
 // Car Owner
+
+
 exports.registerHost = async (req, res) => {
-  const { username,email, password, whatsapp_number } = req.body
+  const { username, email, password, whatsapp_number, licence_no } = req.body;
   try {
     const hashedPassword = await hash(password, 10);
     const role = 'car_owner';
 
-    let profile_picture = ''; // Initialize profile picture variable
+    let profile_picture = '';
+    let licence_picture = '';
 
-    // Check if a file was uploaded
-    if (req.file) {
-      // Construct file address with domain from environment variable
-      const domain = process.env.DOMAIN; // Default to localhost
-      profile_picture = `${domain}/uploads/user/${req.file.filename}`;
+    // Check if files were uploaded
+    if (req.files) {
+      const domain = process.env.DOMAIN || 'http://localhost';
+
+      if (req.files['profile_picture']) {
+        profile_picture = `${domain}/uploads/user/${req.files['profile_picture'][0].filename}`;
+      }
+
+      if (req.files['licence_picture']) {
+        licence_picture = `${domain}/uploads/user/${req.files['licence_picture'][0].filename}`;
+      }
     }
 
-
-    await db.query('insert into users(username, email, password, whatsapp_number, profile_picture, role) values ($1 , $2, $3, $4, $5, $6)', [
+    await db.query('INSERT INTO users(username, email, password, whatsapp_number, profile_picture, licence_picture, role, licence_no) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [
       username,
       email,
       hashedPassword,
       whatsapp_number,
       profile_picture,
-      role
-    ])
+      licence_picture,
+      role,
+      licence_no
+    ]);
 
     return res.status(201).json({
       success: true,
-      message: 'The Host registraion was successfull',
-    })
+      message: 'The Host registration was successful',
+    });
   } catch (error) {
-    console.log(error.message)
+    console.log(error.message);
     return res.status(500).json({
       error: error.message,
-    })
+    });
   }
-}
+};
+
 
 // Client
 exports.registerRenter = async (req, res) => {
-  const { username,email, password, whatsapp_number } = req.body
+  const { username, email, password, whatsapp_number, licence_no } = req.body;
   try {
     const hashedPassword = await hash(password, 10);
     const role = 'renter';
 
-    let profile_picture = ''; 
+    let profile_picture = '';
+    let licence_picture = '';
 
-    // Check if a file was uploaded
-    if (req.file) {
-      const domain = process.env.DOMAIN; 
-      profile_picture = `${domain}/uploads/user/${req.file.filename}`;
+    // Check if files were uploaded
+    if (req.files) {
+      const domain = process.env.DOMAIN || 'http://localhost';
+
+      if (req.files['profile_picture']) {
+        profile_picture = `${domain}/uploads/user/${req.files['profile_picture'][0].filename}`;
+      }
+
+      if (req.files['licence_picture']) {
+        licence_picture = `${domain}/uploads/user/${req.files['licence_picture'][0].filename}`;
+      }
     }
 
-
-    await db.query('insert into users(username, email, password, whatsapp_number, profile_picture, role) values ($1 , $2, $3, $4, $5, $6)', [
+    await db.query('INSERT INTO users(username, email, password, whatsapp_number, profile_picture, licence_picture, role, licence_no) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [
       username,
       email,
       hashedPassword,
       whatsapp_number,
       profile_picture,
-      role
-    ])
+      licence_picture,
+      role,
+      licence_no
+    ]);
 
     return res.status(201).json({
       success: true,
-      message: 'The Host registraion was successfull',
-    })
+      message: 'The Renter registration was successful',
+    });
   } catch (error) {
-    console.log(error.message)
+    console.log(error.message);
     return res.status(500).json({
       error: error.message,
-    })
+    });
   }
 }
 
@@ -105,6 +125,7 @@ exports.login = async (req, res) => {
 
     return res.status(200).cookie('token', token, { httpOnly: true }).json({
       success: true,
+      token: token,
       message: 'Logged in succefully',
     })
   } catch (error) {

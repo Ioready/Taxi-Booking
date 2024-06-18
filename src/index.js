@@ -20,17 +20,27 @@ app.use(passport.initialize())
 
 //import routes
 const authRoutes = require('./routes/auth')
-const fileRoutes = require('./routes/test');
 const carRoutes = require('./routes/car');
 const bookingRoutes = require('./routes/booking');
+const packageRoutes = require('./routes/subpackages');
+const userSubRoutes = require('./routes/userSubscription');
+const financialRoutes = require('./routes/financial');
+const incidentRoutes = require('./routes/incidentReport');
+const tollRoutes = require('./routes/tollReport');
+const journeyRoutes = require('./routes/journeyUpdate');
 
 
 
 //initialize routes
 app.use('/api/v1/auth', authRoutes)
-app.use('/api/v1/file', fileRoutes)
 app.use('/api/v1/car', carRoutes)
 app.use('/api/v1/booking', bookingRoutes)
+app.use('/api/v1/packages', packageRoutes)
+app.use('/api/v1/userSub', userSubRoutes)
+app.use('/api/v1/financial', financialRoutes)
+app.use('/api/v1/incident', incidentRoutes)
+app.use('/api/v1/toll', tollRoutes)
+app.use('/api/v1/journey', journeyRoutes)
 
 //app start
 const appStart = () => {
