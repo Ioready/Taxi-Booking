@@ -15,7 +15,17 @@ app.use('/uploads', express.static('uploads'));
 //initialize middlewares
 app.use(express.json())
 app.use(cookieParser())
-app.use(cors({ origin: CLIENT_URL, credentials: true }))
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://projectx-rho-ashen.vercel.app",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+    optionsSuccessStatus: 204, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  })
+);
 app.use(passport.initialize())
 
 //import routes
