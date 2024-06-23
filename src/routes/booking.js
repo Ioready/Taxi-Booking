@@ -14,7 +14,7 @@ router.put('/approve/:id', approveBooking);
 router.put('/cancel/:id', cancelBooking);
 router.delete("/delete/:id", deleteBooking)
 
-router.post('/availability', checkCarAvailability);
+router.get('/availability', checkCarAvailability);
 
 
 

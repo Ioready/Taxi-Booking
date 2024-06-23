@@ -185,8 +185,43 @@ exports.deleteBooking = async (req, res) => {
 
 
 // Check availability of cars for a specified interval
+// exports.checkCarAvailability = async (req, res) => {
+//   const { start_date, end_date } = req.query;
+
+//   // Validate input dates
+//   if (!start_date || !end_date) {
+//     return res.status(400).json({
+//       success: false,
+//       error: 'Start date and end date are required'
+//     });
+//   }
+
+//   try {
+//     const result = await db.query(
+//       `SELECT * FROM Cars WHERE car_id NOT IN (
+//          SELECT car_id FROM Bookings 
+//          WHERE 
+//            (booking_start <= $1 AND booking_end >= $1) OR 
+//            (booking_start <= $2 AND booking_end >= $2) OR
+//            (booking_start >= $1 AND booking_end <= $2)
+//        )`,
+//       [start_date, end_date]
+//     );
+
+//     return res.status(200).json({
+//       success: true,
+//       availableCars: result.rows
+//     });
+//   } catch (error) {
+//     console.error(error.message);
+//     return res.status(500).json({
+//       error: error.message
+//     });
+//   }
+// };
+
 exports.checkCarAvailability = async (req, res) => {
-  const { start_date, end_date } = req.body;
+  const { start_date, end_date, model } = req.query;
 
   // Validate input dates
   if (!start_date || !end_date) {
@@ -197,16 +232,23 @@ exports.checkCarAvailability = async (req, res) => {
   }
 
   try {
-    const result = await db.query(
-      `SELECT * FROM Cars WHERE car_id NOT IN (
-         SELECT car_id FROM Bookings 
-         WHERE 
-           (booking_start <= $1 AND booking_end >= $1) OR 
-           (booking_start <= $2 AND booking_end >= $2) OR
-           (booking_start >= $1 AND booking_end <= $2)
-       )`,
-      [start_date, end_date]
-    );
+    let query = `
+      SELECT * FROM Cars 
+      WHERE car_id NOT IN (
+        SELECT car_id FROM Bookings 
+        WHERE 
+          (booking_start <= $1 AND booking_end >= $1) OR 
+          (booking_start <= $2 AND booking_end >= $2) OR
+          (booking_start >= $1 AND booking_end <= $2)
+      )`;
+    let queryParams = [start_date, end_date];
+
+    if (model) {
+      query += ` AND model = $3`;
+      queryParams.push(model);
+    }
+
+    const result = await db.query(query, queryParams);
 
     return res.status(200).json({
       success: true,
