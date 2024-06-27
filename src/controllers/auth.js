@@ -1,7 +1,45 @@
 const db = require('../db')
 const { hash } = require('bcryptjs')
-const { sign } = require('jsonwebtoken')
+const { sign, verify } = require('jsonwebtoken')
 const { SECRET } = require('../constants')
+
+
+
+exports.getUserByToken = async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    // Verify and decode the token
+    const decoded = verify(token, SECRET);
+    const { id } = decoded;
+
+    // Query the database for user details
+    const result = await db.query(
+      'SELECT user_id, username, email, whatsapp_number, licence_no, profile_picture, licence_picture, role FROM users WHERE user_id = $1',
+      [id]
+    );
+
+    // Check if user is found
+    if (result.rowCount === 1) {
+      return res.status(200).json({
+        success: true,
+        User: result.rows[0]
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
 
 exports.getUsers = async (req, res) => {
   try {
@@ -15,6 +53,38 @@ exports.getUsers = async (req, res) => {
     console.log(error.message)
   }
 }
+
+// Get User By ID
+
+exports.getUserById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await db.query(
+      'select user_id, username, email, whatsapp_number, licence_no, profile_picture, licence_picture, role from users WHERE user_id = $1',
+      [id]
+    );
+
+    if (result.rowCount === 1) {
+      return res.status(200).json({
+        success: true,
+        User: result.rows[0]
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        error: 'user not found'
+      });
+    }
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({
+      error: error.message
+    });
+  }
+};
+
+
 
 // Car Owner
 

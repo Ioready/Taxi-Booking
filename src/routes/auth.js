@@ -6,6 +6,8 @@ const {
   logout,
   registerHost,
   registerRenter,
+  getUserById,
+  getUserByToken,
 } = require("../controllers/auth");
 const {
   validationMiddleware,
@@ -42,6 +44,7 @@ const upload = multer({ storage: storage });
 const router = Router();
 
 router.get("/get-users", getUsers);
+router.get("/get-users/:id", getUserById);
 router.get("/protected", userAuth, protected);
 
 //                Users Registration 
@@ -62,5 +65,6 @@ router.post("/register_renter", upload.fields([
 
 router.post("/login", loginValidation, validationMiddleware, login);
 router.get("/logout", logout);
+router.post("/token", getUserByToken);
 
 module.exports = router;
