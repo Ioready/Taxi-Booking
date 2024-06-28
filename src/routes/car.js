@@ -32,7 +32,7 @@ router.post("/create", upload.array('images', 5), createCar);
 router.put("/update/:car_id", upload.array('images', 5), updateCar);
 router.get("/getById/:car_id", getCarById);
 router.get("/approve/:car_id", approveCar);
-// router.get("/getall", getCars);
+router.get("/getall", getCars);
 router.delete("/delete/:car_id", deleteCar)
 
 
