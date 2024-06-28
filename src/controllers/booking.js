@@ -185,8 +185,9 @@ exports.deleteBooking = async (req, res) => {
 
 
 // Check availability of cars for a specified interval
+
 // exports.checkCarAvailability = async (req, res) => {
-//   const { start_date, end_date } = req.query;
+//   const { start_date, end_date, model } = req.query;
 
 //   // Validate input dates
 //   if (!start_date || !end_date) {
@@ -197,16 +198,23 @@ exports.deleteBooking = async (req, res) => {
 //   }
 
 //   try {
-//     const result = await db.query(
-//       `SELECT * FROM Cars WHERE car_id NOT IN (
-//          SELECT car_id FROM Bookings 
-//          WHERE 
-//            (booking_start <= $1 AND booking_end >= $1) OR 
-//            (booking_start <= $2 AND booking_end >= $2) OR
-//            (booking_start >= $1 AND booking_end <= $2)
-//        )`,
-//       [start_date, end_date]
-//     );
+//     let query = `
+//       SELECT * FROM Cars 
+//       WHERE car_id NOT IN (
+//         SELECT car_id FROM Bookings 
+//         WHERE 
+//           (booking_start <= $1 AND booking_end >= $1) OR 
+//           (booking_start <= $2 AND booking_end >= $2) OR
+//           (booking_start >= $1 AND booking_end <= $2)
+//       )`;
+//     let queryParams = [start_date, end_date];
+
+//     if (model) {
+//       query += ` AND model = $3`;
+//       queryParams.push(model);
+//     }
+
+//     const result = await db.query(query, queryParams);
 
 //     return res.status(200).json({
 //       success: true,
@@ -240,7 +248,9 @@ exports.checkCarAvailability = async (req, res) => {
           (booking_start <= $1 AND booking_end >= $1) OR 
           (booking_start <= $2 AND booking_end >= $2) OR
           (booking_start >= $1 AND booking_end <= $2)
-      )`;
+      )
+      AND status = 'Approved'`; // Only consider cars that are approved
+
     let queryParams = [start_date, end_date];
 
     if (model) {
@@ -261,3 +271,4 @@ exports.checkCarAvailability = async (req, res) => {
     });
   }
 };
+

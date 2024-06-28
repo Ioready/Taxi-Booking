@@ -16,7 +16,7 @@ CREATE TABLE Users (
     whatsapp_number VARCHAR(15) UNIQUE
 );
 
--- Cars Table
+-- -- Cars Table
 CREATE TABLE Cars (
     car_id SERIAL PRIMARY KEY,
     owner_id INT REFERENCES Users(user_id) ON DELETE CASCADE,
@@ -26,8 +26,15 @@ CREATE TABLE Cars (
     registration_number VARCHAR(20),
     availability BOOLEAN DEFAULT TRUE,
     daily_rate DECIMAL(10, 2),
+    no_of_seats INT,
+    fuel VARCHAR(20),
+    color VARCHAR(20),
+    mileage DECIMAL(10, 2),
+    condition VARCHAR(20) DEFAULT 'Used' CHECK (condition IN ('New', 'Used')),
+    status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Approved', 'Cancelled', 'Pending')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- Bookings Table
 CREATE TABLE Bookings (
@@ -37,6 +44,7 @@ CREATE TABLE Bookings (
     booking_start TIMESTAMP NOT NULL,
     booking_end TIMESTAMP NOT NULL,
     status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Approved', 'Cancelled', 'Pending')),
+    payment_status VARCHAR(20) DEFAULT 'Pending' CHECK (payment_status IN ('Pending', 'Paid'));
     total_price DECIMAL(10, 2),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -111,3 +119,12 @@ CREATE TABLE JourneyUpdates (
 );
 
 
+CREATE TABLE reviews (
+    review_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    booking_id INT REFERENCES Bookings(booking_id) ON DELETE CASCADE,
+    car_id INT REFERENCES Cars(car_id) ON DELETE CASCADE,
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    review_text TEXT,
+    review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
