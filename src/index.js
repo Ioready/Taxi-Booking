@@ -38,6 +38,7 @@ const financialRoutes = require('./routes/financial');
 const incidentRoutes = require('./routes/incidentReport');
 const tollRoutes = require('./routes/tollReport');
 const journeyRoutes = require('./routes/journeyUpdate');
+const reviewsRoutes = require('./routes/reviews');
 
 
 
@@ -51,6 +52,7 @@ app.use('/api/v1/financial', financialRoutes)
 app.use('/api/v1/incident', incidentRoutes)
 app.use('/api/v1/toll', tollRoutes)
 app.use('/api/v1/journey', journeyRoutes)
+app.use('/api/v1/review', reviewsRoutes)
 
 //app start
 const appStart = () => {
