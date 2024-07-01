@@ -21,6 +21,7 @@ CREATE TABLE Cars (
     car_id SERIAL PRIMARY KEY,
     owner_id INT REFERENCES Users(user_id) ON DELETE CASCADE,
     images TEXT[],
+    description TEXT,
     model VARCHAR(50),
     year INT,
     registration_number VARCHAR(20),
@@ -66,9 +67,14 @@ CREATE TABLE SubscriptionPackages (
     package_id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     duration VARCHAR(20) CHECK (duration IN ('monthly', 'yearly')) NOT NULL,
-    discount_percentage DECIMAL(5, 2) NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    no_of_cars INT NOT NULL DEFAULT 3,
+    description TEXT,
+    features TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    type VARCHAR(20) CHECK (type IN ('exclusive', 'including tax')) NOT NULL,
+    tax_name VARCHAR(50),
+    tax_percentage DECIMAL(5, 2) CHECK (tax_percentage BETWEEN 0 AND 100)
 );
 
 -- User Subscriptions Table

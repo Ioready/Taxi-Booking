@@ -2,12 +2,12 @@ const db = require('../db');
 
 // Create a new subscription package
 exports.createSubscriptionPackage = async (req, res) => {
-  const { name, duration, discount_percentage, price } = req.body;
+  const { name, duration, price, no_of_cars, description, features, type, tax_name, tax_percentage } = req.body;
 
   try {
     const result = await db.query(
-      'INSERT INTO SubscriptionPackages (name, duration, discount_percentage, price) VALUES ($1, $2, $3, $4) RETURNING *',
-      [name, duration, discount_percentage, price]
+      'INSERT INTO SubscriptionPackages (name, duration, price, no_of_cars, description, features, type, tax_name, tax_percentage) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [name, duration, price, no_of_cars, description, features, type, tax_name, tax_percentage]
     );
 
     if (result.rowCount === 1) {
@@ -79,12 +79,12 @@ exports.getAllSubscriptionPackages = async (req, res) => {
 // Update a subscription package
 exports.updateSubscriptionPackage = async (req, res) => {
   const { id } = req.params;
-  const { name, duration, discount_percentage, price } = req.body;
+  const { name, duration, price, no_of_cars, description, features, type, tax_name, tax_percentage } = req.body;
 
   try {
     const result = await db.query(
-      'UPDATE SubscriptionPackages SET name = $1, duration = $2, discount_percentage = $3, price = $4 WHERE package_id = $5 RETURNING *',
-      [name, duration, discount_percentage, price, id]
+      'UPDATE SubscriptionPackages SET name = $1, duration = $2, price = $3, no_of_cars = $4, description = $5, features = $6, type = $7, tax_name = $8, tax_percentage = $9 WHERE package_id = $10 RETURNING *',
+      [name, duration, price, no_of_cars, description, features, type, tax_name, tax_percentage, id]
     );
 
     if (result.rowCount === 1) {

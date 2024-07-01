@@ -6,6 +6,7 @@ const path = require('path');
 exports.createCar = async (req, res) => {
   const {
     owner_id,
+    description,
     model,
     year,
     registration_number,
@@ -28,8 +29,8 @@ exports.createCar = async (req, res) => {
 
     // Insert car record into the database
     const result = await db.query(
-      'INSERT INTO Cars(owner_id, images, model, year, registration_number, availability, daily_rate, no_of_seats, fuel, color, mileage, condition) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-      [owner_id, images, model, year, registration_number, availability, daily_rate, no_of_seats, fuel, color, mileage, condition]
+      'INSERT INTO Cars(owner_id, images, description, model, year, registration_number, availability, daily_rate, no_of_seats, fuel, color, mileage, condition) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
+      [owner_id, images, description, model, year, registration_number, availability, daily_rate, no_of_seats, fuel, color, mileage, condition]
     );
 
     // Check if the insertion was successful
@@ -59,6 +60,7 @@ exports.updateCar = async (req, res) => {
   const {
     owner_id,
     model,
+    description,
     year,
     registration_number,
     availability,
@@ -86,6 +88,7 @@ exports.updateCar = async (req, res) => {
     // Update parameters with current values if empty
     const updatedOwnerId = owner_id || currentCar.owner_id;
     const updatedModel = model || currentCar.model;
+    const updatedDescription = description || currentCar.description;
     const updatedYear = year || currentCar.year;
     const updatedRegistrationNumber = registration_number || currentCar.registration_number;
     const updatedAvailability = availability || currentCar.availability;
@@ -105,8 +108,8 @@ exports.updateCar = async (req, res) => {
 
     // Perform the update operation
     const result = await db.query(
-      'UPDATE Cars SET owner_id = $1, images = $2, model = $3, year = $4, registration_number = $5, availability = $6, daily_rate = $7, no_of_seats = $8, fuel = $9, color = $10, mileage = $11, condition = $12 WHERE car_id = $13 RETURNING *',
-      [updatedOwnerId, images, updatedModel, updatedYear, updatedRegistrationNumber, updatedAvailability, updatedDailyRate, updatedNoOfSeats, updatedFuel, updatedColor, updatedMileage, updatedCondition, car_id]
+      'UPDATE Cars SET owner_id = $1, images = $2, model = $3, year = $4, registration_number = $5, availability = $6, daily_rate = $7, no_of_seats = $8, fuel = $9, color = $10, mileage = $11, condition = $12, description = $13 WHERE car_id = $14 RETURNING *',
+      [updatedOwnerId, images, updatedModel, updatedYear, updatedRegistrationNumber, updatedAvailability, updatedDailyRate, updatedNoOfSeats, updatedFuel, updatedColor, updatedMileage, updatedCondition, description, car_id]
     );
 
     if (result.rowCount === 1) {
