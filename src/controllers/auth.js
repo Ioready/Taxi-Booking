@@ -1,5 +1,5 @@
 const db = require('../db')
-const { hash } = require('bcryptjs')
+const { hash, compare } = require('bcryptjs')
 const { sign, verify } = require('jsonwebtoken')
 const { SECRET } = require('../constants')
 
@@ -231,3 +231,41 @@ exports.logout = async (req, res) => {
     })
   }
 }
+
+
+
+exports.loginRole = async (req, res) => {
+  const { email, password, role } = req.body;
+
+  try {
+    const user = await db.query('SELECT * FROM users WHERE email = $1 AND role = $2', [email, role]);
+
+    if (user.rowCount !== 1) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isMatch = await compare(password, user.rows[0].password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const payload = {
+      id: user.rows[0].user_id,
+      email: user.rows[0].email,
+      role: user.rows[0].role,
+    };
+
+    const token = sign(payload, SECRET, { expiresIn: '1h' });
+
+    return res.status(200).cookie('token', token, { httpOnly: true }).json({
+      success: true,
+      role: user.rows[0].role,
+      token,
+      message: 'Logged in successfully',
+    });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};

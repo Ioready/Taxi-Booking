@@ -8,6 +8,7 @@ const {
   registerRenter,
   getUserById,
   getUserByToken,
+  loginRole,
 } = require("../controllers/auth");
 const {
   validationMiddleware,
@@ -64,6 +65,7 @@ router.post("/register_renter", upload.fields([
   { name: 'licence_picture', maxCount: 1 }]) , registerValidation, validationMiddleware, registerRenter);
 
 router.post("/login", loginValidation, validationMiddleware, login);
+router.post("/role_login", loginRole);
 router.get("/logout", logout);
 router.post("/token", getUserByToken);
 
