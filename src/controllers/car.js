@@ -21,7 +21,7 @@ exports.createCar = async (req, res) => {
 
   try {
     // Extract file paths of uploaded images
-    let images = '';
+    let images = [];
     if (req.files && req.files.length > 0) {
       const domain = process.env.DOMAIN;
       images = req.files.map(file => `${domain}/uploads/car/${file.filename}`);
@@ -109,7 +109,7 @@ exports.updateCar = async (req, res) => {
     // Perform the update operation
     const result = await db.query(
       'UPDATE Cars SET owner_id = $1, images = $2, model = $3, year = $4, registration_number = $5, availability = $6, daily_rate = $7, no_of_seats = $8, fuel = $9, color = $10, mileage = $11, condition = $12, description = $13 WHERE car_id = $14 RETURNING *',
-      [updatedOwnerId, images, updatedModel, updatedYear, updatedRegistrationNumber, updatedAvailability, updatedDailyRate, updatedNoOfSeats, updatedFuel, updatedColor, updatedMileage, updatedCondition, description, car_id]
+      [updatedOwnerId, images, updatedModel, updatedYear, updatedRegistrationNumber, updatedAvailability, updatedDailyRate, updatedNoOfSeats, updatedFuel, updatedColor, updatedMileage, updatedCondition, updatedDescription, car_id]
     );
 
     if (result.rowCount === 1) {
