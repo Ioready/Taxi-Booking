@@ -50,16 +50,27 @@ CREATE TABLE Bookings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE stripe_transactions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    stripe_id VARCHAR(255) NOT NULL,
+    bal_id VARCHAR(255),
+    amount BIGINT NOT NULL,
+    url TEXT,
+    email VARCHAR(255) NOT NULL,
+    customer_id VARCHAR(255),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Financial Transactions Table
 CREATE TABLE FinancialTransactions (
-    transaction_id SERIAL PRIMARY KEY,
+    financial_id SERIAL PRIMARY KEY,
     booking_id INT REFERENCES Bookings(booking_id) ON DELETE CASCADE,
     user_id INT REFERENCES Users(user_id) ON DELETE CASCADE,
-    amount DECIMAL(10, 2) NOT NULL,
-    transaction_type VARCHAR(20) CHECK (transaction_type IN ('earning', 'expense')) NOT NULL,
-    payment_method VARCHAR(50),
-    transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    transaction_id INT REFERENCES stripe_transactions(id) ON DELETE CASCADE,
+    amount BIGINT NOT NULL,
+    payment_type VARCHAR(55) CHECK (payment_type IN ('Subscription', 'Booking')) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Subscription Packages Table
@@ -134,3 +145,5 @@ CREATE TABLE reviews (
     review_text TEXT,
     review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
