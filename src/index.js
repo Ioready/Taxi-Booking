@@ -21,6 +21,7 @@ app.use(
       "http://localhost:3000",
       "https://projectx-rho-ashen.vercel.app",
       "https://www.bistekrentals.com",
+      "https://bistekrentals.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
