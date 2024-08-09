@@ -105,12 +105,40 @@ exports.success = async (req, res) => {
 };
 
 
-exports.getFinancialTransactionById = async (req, res) => {
+exports.getFinancialTransactionByUserId = async (req, res) => {
   const { id } = req.params;
 
   try {
     const result = await db.query(
-      'SELECT * FROM FinancialTransactions WHERE transaction_id = $1',
+      'SELECT * FROM FinancialTransactions WHERE user_id = $1',
+      [id]
+    );
+
+    if (result.rowCount === 1) {
+      return res.status(200).json({
+        success: true,
+        transaction: result.rows
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        error: 'Financial transaction not found'
+      });
+    }
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({
+      error: error.message
+    });
+  }
+};
+
+exports.getFinancialTransactionByUserBookingId = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await db.query(
+      'SELECT * FROM FinancialTransactions WHERE booking_id = $1',
       [id]
     );
 
