@@ -4,127 +4,109 @@ const db = require('../db');
 
 exports.payment = async (req, res) => {
   try {
-    const {
-      stripeEmail,
-      // stripeToken,
-      amount,
-      productName,
-      userId,
-      bookingId,
-      paymentType,
-      name,
-      addressLine1,
-      postalCode,
-      city,
-      state,
-      country,
-    } = req.body;
+      console.log(req.body);
 
-    // Create a new customer
-    const customer = await stripe.customers.create({
-      email: stripeEmail,
-      source: req.body.stripeToken,
-      name: name,
-      address: {
-        line1: addressLine1,
-        postal_code: postalCode,
-        city: city,
-        state: state,
-        country: country,
-      },
-    });
+      // Create a Checkout Session
+      const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [
+              {
+                  price_data: {
+                      currency: 'usd',
+                      product_data: {
+                          name: req.body.productName || 'Car Booking',
+                      },
+                      unit_amount: req.body.amount, // Amount in the smallest currency unit
+                  },
+                  quantity: 1,
+              }
+          ],
+          mode: 'payment',
+          success_url: 'https://projectx-rho-ashen.vercel.app/user_dashboard/home/booking_successful?session_id={CHECKOUT_SESSION_ID}', // Pass session_id in the success URL
+          cancel_url: 'https://projectx-rho-ashen.vercel.app/user_dashboard/home/booking_cancel',
+          customer_email: req.body.stripeEmail,
+          payment_intent_data: {
+              application_fee_amount: 400, // Application fee amount in cents
+              transfer_data: {
+                  destination: 'acct_1PcSG2RumABdDmB0', // Connected account to receive funds
+              }
+          }
+      });
 
-    // Create a charge for the customer
-    const charge = await stripe.charges.create({
-      amount: amount * 100, // Stripe works with the smallest currency unit
-      description: productName,
-      currency: 'USD',
-      customer: customer.id,
-    });
+      console.log(session)
 
-    // Save the transaction to the database
-    const client = await db.connect();
-    try {
-      await client.query('BEGIN');
-
-      const insertStripeTransactionQuery = `
-        INSERT INTO stripe_transactions (user_id, stripe_id, bal_id, amount, url, email, customer_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING id;
+      // Insert the transaction data into the database
+      const query = `
+          INSERT INTO FinancialTransactions (
+              booking_id,
+              user_id,
+              amount,
+              payment_type,
+              stripe_session_id,
+              stripe_payment_intent_id,
+              currency,
+              application_fee_amount,
+              transfer_destination,
+              status,
+              customer_email
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       `;
-      const stripeTransactionValues = [
-        userId,
-        charge.id,
-        charge.balance_transaction,
-        charge.amount,
-        charge.receipt_url,
-        charge.billing_details.email,
-        customer.id,
+
+      const values = [
+          req.body.bookingId, // Assuming bookingId is passed in req.body
+          req.body.userId, // Assuming userId is passed in req.body
+          req.body.amount,
+          'Booking', // Assuming payment type is always 'Booking' for this scenario
+          session.id,
+          session.payment_intent,
+          'usd', // Currency hard-coded as USD
+          300, // Application fee hard-coded as 300 cents
+          'acct_1PcSG2RumABdDmB0', // Destination account hard-coded
+          'pending', // Initial status set to 'pending'
+          req.body.stripeEmail
       ];
-      const stripeTransactionResult = await client.query(insertStripeTransactionQuery, stripeTransactionValues);
-      const transactionId = stripeTransactionResult.rows[0].id;
 
-      const insertFinancialTransactionQuery = `
-        INSERT INTO FinancialTransactions (booking_id, user_id, transaction_id, amount, payment_type)
-        VALUES ($1, $2, $3, $4, $5);
-      `;
-      const financialTransactionValues = [
-        bookingId,
-        userId,
-        transactionId,
-        charge.amount,
-        paymentType,
-      ];
-      await client.query(insertFinancialTransactionQuery, financialTransactionValues);
+      await db.query(query, values); // Assuming you have a db connection object to execute queries
 
-      await client.query('COMMIT');
-
-      res.redirect("/success");
-    } catch (error) {
-      await client.query('ROLLBACK');
-      console.error('Transaction failed', error);
-      res.redirect("/failure");
-    } finally {
-      client.release();
-    }
-  } catch (error) {
-    console.log(error.message);
-    res.redirect("/failure");
+      res.json({ url: session.url });
+  } catch (err) {
+      console.log(err);
+      res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
 
-// Create a new financial transaction
-// exports.createFinancialTransaction = async (req, res) => {
-//   const { booking_id, user_id, amount, transaction_type, payment_method } = req.body;
 
-//   try {
-//     const result = await db.query(
-//       'INSERT INTO FinancialTransactions (booking_id, user_id, amount, transaction_type, payment_method) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-//       [booking_id, user_id, amount, transaction_type, payment_method]
-//     );
+exports.success = async (req, res) => {
+  try {
+    console.log(req.query, req.query.session_id)
+      const sessionId = req.query.session_id; // Assuming the session_id is passed as a query parameter
 
-//     if (result.rowCount === 1) {
-//       return res.status(201).json({
-//         success: true,
-//         message: 'Financial transaction created successfully',
-//         transaction: result.rows[0]
-//       });
-//     } else {
-//       return res.status(500).json({
-//         success: false,
-//         error: 'Failed to create financial transaction'
-//       });
-//     }
-//   } catch (error) {
-//     console.error(error.message);
-//     return res.status(500).json({
-//       error: error.message
-//     });
-//   }
-// };
+      // Retrieve the session from Stripe to confirm payment success
+      // const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-// Get a financial transaction by ID
+      // Update the FinancialTransactions record with the successful payment details
+      const query = `
+          UPDATE FinancialTransactions
+          SET status = $1, updated_at = NOW()
+          WHERE stripe_session_id = $2
+      `;
+
+      const values = [
+          'completed',  // Update the status to 'completed'
+          sessionId     // Match the Stripe session ID to update the correct record
+      ];
+
+      await db.query(query, values); // Assuming you have a db connection object to execute queries
+
+      res.render('success'); // Render the success page after updating the database
+  } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
 exports.getFinancialTransactionById = async (req, res) => {
   const { id } = req.params;
 

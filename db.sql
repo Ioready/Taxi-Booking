@@ -67,11 +67,21 @@ CREATE TABLE FinancialTransactions (
     financial_id SERIAL PRIMARY KEY,
     booking_id INT REFERENCES Bookings(booking_id) ON DELETE CASCADE,
     user_id INT REFERENCES Users(user_id) ON DELETE CASCADE,
-    transaction_id INT REFERENCES stripe_transactions(id) ON DELETE CASCADE,
-    amount BIGINT NOT NULL,
+    amount BIGINT NOT NULL, -- Stored in the smallest currency unit (e.g., cents for USD)
     payment_type VARCHAR(55) CHECK (payment_type IN ('Subscription', 'Booking')) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Stripe-related fields
+    stripe_session_id VARCHAR(255) UNIQUE, -- Store the Stripe session ID
+    stripe_payment_intent_id VARCHAR(255) UNIQUE, -- Store the Stripe Payment Intent ID
+    currency VARCHAR(10) DEFAULT 'usd', -- Currency used for the transaction
+    application_fee_amount INTEGER DEFAULT 300, -- Application fee charged (in the smallest currency unit)
+    transfer_destination VARCHAR(255), -- Connected account to receive the transfer
+    status VARCHAR(50) DEFAULT 'pending', -- Status of the transaction (e.g., pending, completed, failed)
+    customer_email VARCHAR(255) -- Email of the customer who made the payment
 );
+
 
 -- Subscription Packages Table
 CREATE TABLE SubscriptionPackages (
