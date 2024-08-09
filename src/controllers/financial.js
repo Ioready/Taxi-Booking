@@ -79,12 +79,8 @@ exports.payment = async (req, res) => {
 
 exports.success = async (req, res) => {
   try {
-    console.log(req.query, req.query.session_id)
       const sessionId = req.query.session_id; // Assuming the session_id is passed as a query parameter
-
-      // Retrieve the session from Stripe to confirm payment success
-      // const session = await stripe.checkout.sessions.retrieve(sessionId);
-
+      
       // Update the FinancialTransactions record with the successful payment details
       const query = `
           UPDATE FinancialTransactions
