@@ -80,7 +80,7 @@ exports.payment = async (req, res) => {
 exports.success = async (req, res) => {
   try {
       const sessionId = req.query.session_id; // Assuming the session_id is passed as a query parameter
-      
+
       // Update the FinancialTransactions record with the successful payment details
       const query = `
           UPDATE FinancialTransactions
@@ -95,7 +95,9 @@ exports.success = async (req, res) => {
 
       await db.query(query, values); // Assuming you have a db connection object to execute queries
 
-      res.render('success'); // Render the success page after updating the database
+      return res.status(200).json({
+        success: true
+      });
   } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: 'Internal Server Error' });
