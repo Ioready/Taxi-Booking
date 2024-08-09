@@ -107,6 +107,7 @@ exports.success = async (req, res) => {
 
 exports.getFinancialTransactionByUserId = async (req, res) => {
   const { id } = req.params;
+  // console.log(req, id)
 
   try {
     const result = await db.query(
@@ -114,17 +115,10 @@ exports.getFinancialTransactionByUserId = async (req, res) => {
       [id]
     );
 
-    if (result.rowCount === 1) {
-      return res.status(200).json({
-        success: true,
-        transaction: result.rows
-      });
-    } else {
-      return res.status(404).json({
-        success: false,
-        error: 'Financial transaction not found'
-      });
-    }
+    return res.status(200).json({
+      success: true,
+      transactions: result.rows
+    });
   } catch (error) {
     console.error(error.message);
     return res.status(500).json({
@@ -142,17 +136,10 @@ exports.getFinancialTransactionByUserBookingId = async (req, res) => {
       [id]
     );
 
-    if (result.rowCount === 1) {
-      return res.status(200).json({
-        success: true,
-        transaction: result.rows[0]
-      });
-    } else {
-      return res.status(404).json({
-        success: false,
-        error: 'Financial transaction not found'
-      });
-    }
+    return res.status(200).json({
+      success: true,
+      transactions: result.rows
+    });
   } catch (error) {
     console.error(error.message);
     return res.status(500).json({
