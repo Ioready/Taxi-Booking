@@ -43,7 +43,7 @@ exports.getUserByToken = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
   try {
-    const { rows } = await db.query('select user_id, username, email, whatsapp_number, licence_no, profile_picture, licence_picture, role from users')
+    const { rows } = await db.query('select user_id, username, email, whatsapp_number, licence_no, profile_picture, licence_picture, role, account_id from users')
 
     return res.status(200).json({
       success: true,

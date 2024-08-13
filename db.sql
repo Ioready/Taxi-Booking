@@ -1,6 +1,14 @@
 
 ------------------------------ PHASE 1  ------------------------------------
 
+CREATE TABLE global (
+    id SERIAL PRIMARY KEY,                -- Unique identifier for the global entity
+    title VARCHAR(255) NOT NULL,          -- Title or heading of the global entity
+    img_url VARCHAR(255),                 -- URL or file path to the image associated with the global entity
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),  -- Status of the global entity with default value and constraint
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the global entity was created
+);
+
 
 -- Users Table
 CREATE TABLE Users (
@@ -12,6 +20,8 @@ CREATE TABLE Users (
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     licence_no VARCHAR(255) NOT NULL,
     licence_picture VARCHAR(255),
+    account_id VARCHAR(255),
+    approve BOOLEAN DEFAULT FALSE,
     profile_picture VARCHAR(255),
     whatsapp_number VARCHAR(15) UNIQUE
 );

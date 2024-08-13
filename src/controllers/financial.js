@@ -2,6 +2,52 @@ const { STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY } = process.env;
 const stripe = require('stripe')(STRIPE_SECRET_KEY)
 const db = require('../db');
 
+
+// Connect Account
+
+
+exports.onboard = async (req, res) => {
+  const { email } = req.body; // Assume you receive the user's email in the request body
+
+  try {
+    // Step 1: Create the Stripe Express account
+    const account = await stripe.accounts.create({
+      type: 'express',
+      country: 'US',
+      email: email,
+    });
+
+    // Step 2: Create an account link for onboarding
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: 'https://www.bistekrentals.com/user_dashboard',
+      return_url: 'https://www.bistekrentals.com/user_dashboard/home',
+      type: 'account_onboarding',
+    });
+
+    // Step 3: Update the user's account_id in the database
+    const result = await db.query(
+      'UPDATE Users SET account_id = $1 WHERE email = $2 RETURNING *',
+      [account.id, email]
+    );
+
+    if (result.rowCount === 1) {
+      // Step 4: Send the onboarding link to the client
+      res.status(200).json({
+        message: 'Onboarding link created successfully',
+        onboardingLink: accountLink.url,
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to update user account_id' });
+    }
+  } catch (error) {
+    console.error('Error creating onboarding link:', error);
+    res.status(500).json({ error: 'Failed to create onboarding link' });
+  }
+};
+
+// Create Payment
+
 exports.payment = async (req, res) => {
   try {
       console.log(req.body);
@@ -22,13 +68,13 @@ exports.payment = async (req, res) => {
               }
           ],
           mode: 'payment',
-          success_url: 'https://projectx-rho-ashen.vercel.app/user_dashboard/home/booking_successful?session_id={CHECKOUT_SESSION_ID}', // Pass session_id in the success URL
-          cancel_url: 'https://projectx-rho-ashen.vercel.app/user_dashboard/home/booking_cancel',
+          success_url: 'https://www.bistekrentals.com/user_dashboard/home/booking_successful?session_id={CHECKOUT_SESSION_ID}', // Pass session_id in the success URL
+          cancel_url: 'https://www.bistekrentals.com/user_dashboard/home/booking_cancel',
           customer_email: req.body.stripeEmail,
           payment_intent_data: {
               application_fee_amount: 400, // Application fee amount in cents
               transfer_data: {
-                  destination: 'acct_1PcSG2RumABdDmB0', // Connected account to receive funds
+                  destination: 'acct_1PmTJCRxmi3bfIyu', // Connected account to receive funds
               }
           }
       });
@@ -104,6 +150,42 @@ exports.success = async (req, res) => {
   }
 };
 
+// Check account status
+
+exports.checkAccountStatus = async (req, res) => {
+  const { email } = req.body; // Email of the user whose account status you want to check
+
+  try {
+    // Step 1: Fetch the user from the database to get the Stripe account ID
+    const userResult = await db.query('SELECT account_id FROM Users WHERE email = $1', [email]);
+
+    if (userResult.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const accountId = userResult.rows[0].account_id;
+
+    // Step 2: Retrieve the Stripe account details
+    const account = await stripe.accounts.retrieve(accountId);
+
+    // Step 3: Check the capabilities
+    const capabilities = account.capabilities;
+    const cardPaymentsActive = capabilities.card_payments === 'active';
+    const transfersActive = capabilities.transfers === 'active';
+
+    // Step 4: Return the account status
+    res.status(200).json({
+      message: 'Account status retrieved successfully',
+      capabilities: {
+        card_payments: cardPaymentsActive,
+        transfers: transfersActive,
+      },
+    });
+  } catch (error) {
+    console.error('Error retrieving account status:', error);
+    res.status(500).json({ error: 'Failed to retrieve account status' });
+  }
+};
 
 exports.getFinancialTransactionByUserId = async (req, res) => {
   const { id } = req.params;
