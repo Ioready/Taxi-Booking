@@ -60,17 +60,17 @@ CREATE TABLE Bookings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE stripe_transactions (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    stripe_id VARCHAR(255) NOT NULL,
-    bal_id VARCHAR(255),
-    amount BIGINT NOT NULL,
-    url TEXT,
-    email VARCHAR(255) NOT NULL,
-    customer_id VARCHAR(255),
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
+-- CREATE TABLE stripe_transactions (
+--     id SERIAL PRIMARY KEY,
+--     user_id INTEGER NOT NULL,
+--     stripe_id VARCHAR(255) NOT NULL,
+--     bal_id VARCHAR(255),
+--     amount BIGINT NOT NULL,
+--     url TEXT,
+--     email VARCHAR(255) NOT NULL,
+--     customer_id VARCHAR(255),
+--     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+-- );
 
 -- Financial Transactions Table
 CREATE TABLE FinancialTransactions (
@@ -79,17 +79,15 @@ CREATE TABLE FinancialTransactions (
     user_id INT REFERENCES Users(user_id) ON DELETE CASCADE,
     amount BIGINT NOT NULL, -- Stored in the smallest currency unit (e.g., cents for USD)
     payment_type VARCHAR(55) CHECK (payment_type IN ('Subscription', 'Booking')) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    -- Stripe-related fields
     stripe_session_id VARCHAR(255) UNIQUE, -- Store the Stripe session ID
     stripe_payment_intent_id VARCHAR(255) UNIQUE, -- Store the Stripe Payment Intent ID
     currency VARCHAR(10) DEFAULT 'usd', -- Currency used for the transaction
     application_fee_amount INTEGER DEFAULT 300, -- Application fee charged (in the smallest currency unit)
     transfer_destination VARCHAR(255), -- Connected account to receive the transfer
     status VARCHAR(50) DEFAULT 'pending', -- Status of the transaction (e.g., pending, completed, failed)
-    customer_email VARCHAR(255) -- Email of the customer who made the payment
+    customer_email VARCHAR(255), -- Email of the customer who made the payment
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -97,15 +95,18 @@ CREATE TABLE FinancialTransactions (
 CREATE TABLE SubscriptionPackages (
     package_id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    duration VARCHAR(20) CHECK (duration IN ('monthly', 'yearly')) NOT NULL,
+    duration VARCHAR(20),
     price DECIMAL(10, 2) NOT NULL,
     no_of_cars INT NOT NULL DEFAULT 3,
     description TEXT,
     features TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     type VARCHAR(20) CHECK (type IN ('exclusive', 'including tax')) NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('active', 'inactive')) DEFAULT 'active',
     tax_name VARCHAR(50),
-    tax_percentage DECIMAL(5, 2) CHECK (tax_percentage BETWEEN 0 AND 100)
+    tax_percentage DECIMAL(5, 2) CHECK (tax_percentage BETWEEN 0 AND 100),
+    product_id VARCHAR(50),
+    price_id VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- User Subscriptions Table
