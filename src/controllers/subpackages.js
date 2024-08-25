@@ -184,14 +184,17 @@ exports.updateSubscriptionPackage = async (req, res) => {
 
 // Delete a subscription package
 exports.deleteSubscriptionPackage = async (req, res) => {
-  const { package_id } = req.params;
+  const { id } = req.params;
+  // console.log(id)
 
   try {
     // Fetch the subscription package from the database
     const packageResult = await db.query(
       'SELECT * FROM SubscriptionPackages WHERE package_id = $1',
-      [package_id]
+      [id]
     );
+
+    // console.log(packageResult)
 
     if (packageResult.rowCount === 0) {
       return res.status(404).json({
@@ -200,26 +203,28 @@ exports.deleteSubscriptionPackage = async (req, res) => {
       });
     }
 
+
+
     const subscriptionPackage = packageResult.rows[0];
     const { product_id, price_id } = subscriptionPackage;
 
     // Fetch active subscriptions associated with this package
-    const subscriptionResult = await db.query(
-      'SELECT stripe_subscription_id FROM UserSubscriptions WHERE package_id = $1 AND status = $2',
-      [package_id, 'active']
-    );
+    // const subscriptionResult = await db.query(
+    //   'SELECT stripe_subscription_id FROM UserSubscriptions WHERE package_id = $1 AND status = $2',
+    //   [id, 'active']
+    // );
 
-    if (subscriptionResult.rowCount > 0) {
-      // Cancel active subscriptions in Stripe
-      for (const { stripe_subscription_id } of subscriptionResult.rows) {
-        await stripe.subscriptions.update(stripe_subscription_id, {
-          cancel_at_period_end: true,
-        });
-      }
+    // if (subscriptionResult.rowCount > 0) {
+    //   // Cancel active subscriptions in Stripe
+    //   for (const { stripe_subscription_id } of subscriptionResult.rows) {
+    //     await stripe.subscriptions.update(stripe_subscription_id, {
+    //       cancel_at_period_end: true,
+    //     });
+    //   }
 
-      // Optionally, notify users about the cancellation or transition
-      // e.g., send an email or notification
-    }
+    //   // Optionally, notify users about the cancellation or transition
+    //   // e.g., send an email or notification
+    // }
 
     // Delete the price and product from Stripe
     if (price_id) {
@@ -233,7 +238,7 @@ exports.deleteSubscriptionPackage = async (req, res) => {
     // Delete the subscription package from the database
     await db.query(
       'DELETE FROM SubscriptionPackages WHERE package_id = $1',
-      [package_id]
+      [id]
     );
 
     return res.status(200).json({
