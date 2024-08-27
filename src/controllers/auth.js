@@ -41,18 +41,51 @@ exports.getUserByToken = async (req, res) => {
 };
 
 
-exports.getUsers = async (req, res) => {
+exports.getRenters = async (req, res) => {
   try {
-    const { rows } = await db.query('select user_id, username, email, whatsapp_number, licence_no, profile_picture, licence_picture, role, account_id from users')
+    // Fetch renters from the database
+    const { rows } = await db.query(
+      'SELECT user_id, username, email, whatsapp_number, role, licence_no, profile_picture, licence_picture, account_id FROM users WHERE role = $1',
+      ['renter']
+    );
 
+    // Return the list of renters
     return res.status(200).json({
       success: true,
       users: rows,
-    })
+    });
   } catch (error) {
-    console.log(error.message)
+    console.error('Error fetching renters:', error.message);
+    return res.status(500).json({
+      success: false,
+      error: 'An error occurred while fetching renters. Please try again later.'
+    });
   }
-}
+};
+
+
+
+exports.getHosts = async (req, res) => {
+  try {
+    // Fetch renters from the database
+    const { rows } = await db.query(
+      'SELECT user_id, username, email, whatsapp_number, role, is_subscribed, licence_no, profile_picture, licence_picture, account_id FROM users WHERE role = $1',
+      ['car_owner']
+    );
+
+    // Return the list of renters
+    return res.status(200).json({
+      success: true,
+      users: rows,
+    });
+  } catch (error) {
+    console.error('Error fetching renters:', error.message);
+    return res.status(500).json({
+      success: false,
+      error: 'An error occurred while fetching renters. Please try again later.'
+    });
+  }
+};
 
 // Get User By ID
 

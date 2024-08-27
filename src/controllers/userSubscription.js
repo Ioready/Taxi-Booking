@@ -42,6 +42,7 @@ exports.payForSubscription = async (req, res) => {
         }
       }
     });
+    let endDate = calculateEndDate(new Date(), duration)
     // console.log(calculateEndDate(duration))
     // Insert the subscription details into the database
     await db.query(
@@ -50,14 +51,15 @@ exports.payForSubscription = async (req, res) => {
         user_id,
         package_id,
         new Date(), // Set start date to current time
-        '2025-06-17', // Calculate end date based on the duration
-        'active' // Status is 'pending' until payment confirmation
+        endDate, // Calculate end date based on the duration
+        'pending' // Status is 'pending' until payment confirmation
       ]
     );
     // console.log(subscriptionPackage,session, 'db query', calculateEndDate(duration) )
 
     return res.status(200).json({
       success: true,
+      checkoutUrl: session.url, // Send the checkout URL to the client
       sessionId: session.id // Send the session ID to the client
     });
   } catch (error) {
@@ -69,23 +71,23 @@ exports.payForSubscription = async (req, res) => {
 };
 
 // Helper function to calculate end date based on duration
-function calculateEndDate(duration) {
-  const startDate = new Date();
-  let endDate;
+// function calculateEndDate(duration) {
+//   const startDate = new Date();
+//   let endDate;
 
-  switch (duration) {
-    case 'month':
-      endDate = new Date(startDate.setMonth(startDate.getMonth() + 1));
-      break;
-    case 'year':
-      endDate = new Date(startDate.setFullYear(startDate.getFullYear() + 1));
-      break;
-    default:
-      endDate = startDate;
-  }
+//   switch (duration) {
+//     case 'month':
+//       endDate = new Date(startDate.setMonth(startDate.getMonth() + 1));
+//       break;
+//     case 'year':
+//       endDate = new Date(startDate.setFullYear(startDate.getFullYear() + 1));
+//       break;
+//     default:
+//       endDate = startDate;
+//   }
 
-  return endDate;
-}
+//   return endDate;
+// }
 
 // Get a user subscription by ID
 exports.getUserSubscriptionById = async (req, res) => {
@@ -192,6 +194,69 @@ exports.deleteUserSubscription = async (req, res) => {
     });
   }
 };
+
+// Update status
+exports.updateSubscriptionStatus = async (req, res) => {
+  const { subscription_id, status } = req.body;
+
+  // List of valid status values
+  const validStatuses = ['active', 'expired', 'cancelled', 'pending'];
+
+  // Check if the provided status is valid
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid status value. Valid statuses are: active, expired, cancelled, pending.'
+    });
+  }
+
+  try {
+    // Start a transaction
+    await db.query('BEGIN');
+
+    // Update the subscription status in the database
+    const result = await db.query(
+      'UPDATE UserSubscriptions SET status = $1 WHERE subscription_id = $2 RETURNING user_id, status',
+      [status, subscription_id]
+    );
+
+    if (result.rowCount === 0) {
+      await db.query('ROLLBACK');
+      return res.status(404).json({
+        success: false,
+        error: 'Subscription not found'
+      });
+    }
+
+    const { user_id, status: updatedStatus } = result.rows[0];
+
+    // Determine the value for is_subscribed based on the status
+    const isSubscribed = updatedStatus === 'active';
+
+    // Update the is_subscribed field in the Users table
+    await db.query(
+      'UPDATE Users SET is_subscribed = $1 WHERE user_id = $2',
+      [isSubscribed, user_id]
+    );
+
+    // Commit the transaction
+    await db.query('COMMIT');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Subscription status and user subscription status updated successfully',
+      subscription: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error updating subscription status:', error);
+    await db.query('ROLLBACK');
+    return res.status(500).json({
+      success: false,
+      error: 'An error occurred while updating the subscription status. Please try again later.'
+    });
+  }
+};
+
 
 
 
@@ -318,3 +383,6 @@ exports.updateOrRenewSubscription = async (req, res) => {
     });
   }
 };
+
+// console.log(calculateEndDate('2025-06-17','month'))
+// console.log(calculateEndDate('2025-06-17','year'))

@@ -9,6 +9,8 @@ const {
   getUserById,
   getUserByToken,
   loginRole,
+  getRenters,
+  getHosts,
 } = require("../controllers/auth");
 const {
   validationMiddleware,
@@ -44,7 +46,8 @@ const upload = multer({ storage: storage });
 
 const router = Router();
 
-router.get("/get-users", getUsers);
+router.get("/get-renters", getRenters);
+router.get("/get-hosts", getHosts);
 router.get("/get-users/:id", getUserById);
 router.get("/protected", userAuth, protected);
 

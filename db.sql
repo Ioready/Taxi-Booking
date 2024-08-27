@@ -17,6 +17,7 @@ CREATE TABLE Users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('admin', 'car_owner', 'renter')) NOT NULL,
+    is_subscribed BOOLEAN DEFAULT FALSE,
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     licence_no VARCHAR(255) NOT NULL,
     licence_picture VARCHAR(255),
@@ -116,7 +117,7 @@ CREATE TABLE UserSubscriptions (
     package_id INT REFERENCES SubscriptionPackages(package_id) ON DELETE CASCADE,
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('active', 'expired', 'cancelled')) DEFAULT 'active',
+    status VARCHAR(20) CHECK (status IN ('active', 'expired', 'cancelled', 'pending')) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
