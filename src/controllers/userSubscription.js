@@ -32,8 +32,8 @@ exports.payForSubscription = async (req, res) => {
         quantity: 1,
       }],
       mode: 'subscription', // Set mode to 'subscription' for recurring payments
-      success_url: `https://www.bistekrentals.com/user_dashboard/booking_successful?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://www.bistekrentals.com/user_dashboard/home/booking_cancel`,
+      success_url: `https://www.bistekrentals.com/host_dashboard/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://www.bistekrentals.com/host_dashboard/cancel`,
       customer_email: email, // Optional: Pre-fill the email address for the customer
       subscription_data: {
         metadata: {

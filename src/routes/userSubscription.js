@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { config } = require("dotenv");
-const { createUserSubscription, getUserSubscriptionById, getAllUserSubscriptions, updateUserSubscription, deleteUserSubscription, payForSubscription, updateSubscriptionStatus } = require("../controllers/userSubscription");
+const { getUserSubscriptionById, getAllUserSubscriptions, updateUserSubscription, deleteUserSubscription, payForSubscription, updateSubscriptionStatus } = require("../controllers/userSubscription");
 config();
 
 

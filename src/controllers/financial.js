@@ -20,8 +20,8 @@ exports.onboard = async (req, res) => {
     // Step 2: Create an account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: 'https://www.bistekrentals.com/user_dashboard',
-      return_url: 'https://www.bistekrentals.com/user_dashboard/home',
+      refresh_url: 'https://www.bistekrentals.com/host_dashboard',
+      return_url: 'https://www.bistekrentals.com/host_dashboard/success',
       type: 'account_onboarding',
     });
 
