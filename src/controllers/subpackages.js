@@ -108,7 +108,7 @@ exports.getAllSubscriptionPackages = async (req, res) => {
 
 // Update a subscription package
 exports.updateSubscriptionPackage = async (req, res) => {
-  const { package_id } = req.params;
+  const { id } = req.params;
   const {
     name,
     duration, // e.g., "month", "year"
@@ -126,7 +126,7 @@ exports.updateSubscriptionPackage = async (req, res) => {
     // Fetch the current subscription package details
     const packageResult = await db.query(
       'SELECT * FROM SubscriptionPackages WHERE package_id = $1',
-      [package_id]
+      [id]
     );
 
     if (packageResult.rowCount === 0) {
@@ -181,6 +181,84 @@ exports.updateSubscriptionPackage = async (req, res) => {
     });
   }
 };
+
+
+// Update a subscription package
+// exports.updateSubscriptionPackage = async (req, res) => {
+//   const { package_id } = req.params;
+//   const {
+//     name,
+//     duration, // e.g., "month", "year"
+//     price,
+//     no_of_cars,
+//     description,
+//     features,
+//     type,
+//     tax_name,
+//     tax_percentage,
+//     status // e.g., "active", "inactive"
+//   } = req.body;
+
+//   try {
+//     // Fetch the current subscription package details
+//     const packageResult = await db.query(
+//       'SELECT * FROM SubscriptionPackages WHERE package_id = $1',
+//       [package_id]
+//     );
+
+//     if (packageResult.rowCount === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         error: 'Subscription package not found'
+//       });
+//     }
+
+//     const subscriptionPackage = packageResult.rows[0];
+//     const { product_id, price_id } = subscriptionPackage;
+
+//     // Update product and price in Stripe if necessary
+//     if (name || description || price || duration) {
+//       if (price_id) {
+//         await stripe.prices.update(price_id, {
+//           unit_amount: Math.round(price * 100), // Convert dollars to cents
+//           recurring: { interval: duration }, // Use the duration field for interval
+//         });
+//       }
+
+//       if (product_id) {
+//         await stripe.products.update(product_id, {
+//           name: name || subscriptionPackage.name,
+//           description: description || subscriptionPackage.description,
+//         });
+//       }
+//     }
+
+//     // Update the subscription package in the database
+//     const updateResult = await db.query(
+//       'UPDATE SubscriptionPackages SET name = $1, duration = $2, price = $3, no_of_cars = $4, description = $5, features = $6, type = $7, tax_name = $8, tax_percentage = $9, status = $10 WHERE package_id = $11 RETURNING *',
+//       [name || subscriptionPackage.name, duration || subscriptionPackage.duration, price || subscriptionPackage.price, no_of_cars || subscriptionPackage.no_of_cars, description || subscriptionPackage.description, features || subscriptionPackage.features, type || subscriptionPackage.type, tax_name || subscriptionPackage.tax_name, tax_percentage || subscriptionPackage.tax_percentage, status || subscriptionPackage.status, package_id]
+//     );
+
+//     if (updateResult.rowCount === 1) {
+//       return res.status(200).json({
+//         success: true,
+//         message: 'Subscription package updated successfully',
+//         package: updateResult.rows[0]
+//       });
+//     } else {
+//       return res.status(500).json({
+//         success: false,
+//         error: 'Failed to update subscription package'
+//       });
+//     }
+//   } catch (error) {
+//     console.error('Error updating subscription package:', error.message);
+//     return res.status(500).json({
+//       error: error.message
+//     });
+//   }
+// };
+
 
 // Delete a subscription package
 exports.deleteSubscriptionPackage = async (req, res) => {
