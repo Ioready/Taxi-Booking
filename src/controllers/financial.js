@@ -52,6 +52,14 @@ exports.payment = async (req, res) => {
   try {
       console.log(req.body);
 
+      // Fetching Plarform Fees
+      const data1 = await pool.query(`SELECT value FROM global WHERE title = $1 AND status = $2`, ['Plaform Fees', 'active']);
+      const platformFees = data1.rows[0].value;
+      
+      // Fetching Stripe Account ID
+      const data2 = await pool.query(`SELECT account_id FROM Users WHERE user_id = $1`, [userId]);
+      const connected_accountId = data2.rows[0].account_id;
+
       // Create a Checkout Session
       const session = await stripe.checkout.sessions.create({
           payment_method_types: ['card'],
@@ -72,9 +80,9 @@ exports.payment = async (req, res) => {
           cancel_url: 'https://www.bistekrentals.com/user_dashboard/home/booking_cancel',
           customer_email: req.body.stripeEmail,
           payment_intent_data: {
-              application_fee_amount: 400, // Application fee amount in cents
+              application_fee_amount: platformFees, // Application fee amount in cents
               transfer_data: {
-                  destination: 'acct_1PmTJCRxmi3bfIyu', // Connected account to receive funds
+                  destination: connected_accountId, // Connected account to receive funds
               }
           }
       });
@@ -106,8 +114,8 @@ exports.payment = async (req, res) => {
           session.id,
           session.payment_intent,
           'usd', // Currency hard-coded as USD
-          300, // Application fee hard-coded as 300 cents
-          'acct_1PcSG2RumABdDmB0', // Destination account hard-coded
+          platformFees, // Application fee hard-coded as 300 cents
+          connected_accountId, // Destination account hard-coded test 'acct_1PcSG2RumABdDmB0'
           'pending', // Initial status set to 'pending'
           req.body.stripeEmail
       ];
