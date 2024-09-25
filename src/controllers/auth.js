@@ -94,7 +94,7 @@ exports.getUserById = async (req, res) => {
 
   try {
     const result = await db.query(
-      'select user_id, username, email, whatsapp_number, licence_no, profile_picture, licence_picture, role from users WHERE user_id = $1',
+      'select user_id, username, email, whatsapp_number, licence_no, profile_picture, licence_picture, account_id, role from users WHERE user_id = $1',
       [id]
     );
 

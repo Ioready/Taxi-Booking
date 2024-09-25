@@ -50,15 +50,26 @@ exports.onboard = async (req, res) => {
 
 exports.payment = async (req, res) => {
   try {
-      console.log(req.body);
+      // console.log(req.body);
 
       // Fetching Plarform Fees
-      const data1 = await pool.query(`SELECT value FROM global WHERE title = $1 AND status = $2`, ['Plaform Fees', 'active']);
+      const data1 = await db.query(`SELECT value FROM global WHERE title = $1 AND status = $2`, ['Plaform Fees', 'active']);
       const platformFees = data1.rows[0].value;
       
       // Fetching Stripe Account ID
-      const data2 = await pool.query(`SELECT account_id FROM Users WHERE user_id = $1`, [userId]);
-      const connected_accountId = data2.rows[0].account_id;
+
+      const data2 = await db.query(`
+        SELECT c.owner_id 
+        FROM Bookings b
+        JOIN Cars c ON b.car_id = c.car_id
+        WHERE b.booking_id = $1
+      `, [req.body.bookingId]);
+      
+      const ownerId = data2.rows[0].owner_id;
+      console.log("ownerId", ownerId)
+      
+      const data3 = await db.query(`SELECT account_id FROM Users WHERE user_id = $1`, [ownerId]);
+      const connected_accountId = data3.rows[0].account_id;
 
       // Create a Checkout Session
       const session = await stripe.checkout.sessions.create({
