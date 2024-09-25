@@ -146,3 +146,55 @@ exports.deleteGlobal = async (req, res) => {
     });
   }
 };
+
+
+
+// Get Global by ID
+exports.getGlobalById = async (req, res) => {
+  const global_id = req.params.global_id;
+
+  try {
+    const result = await db.query('SELECT * FROM global WHERE id = $1', [global_id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Global record not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      global: result.rows[0]
+    });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({
+      error: error.message
+    });
+  }
+};
+
+// Get All Globals
+exports.getGlobals = async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM global');
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No global records found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      globals: result.rows
+    });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({
+      error: error.message
+    });
+  }
+};
