@@ -4,6 +4,7 @@
 CREATE TABLE global (
     id SERIAL PRIMARY KEY,                -- Unique identifier for the global entity
     title VARCHAR(255) NOT NULL,          -- Title or heading of the global entity
+    value VARCHAR(255) NULL,  
     img_url VARCHAR(255),                 -- URL or file path to the image associated with the global entity
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),  -- Status of the global entity with default value and constraint
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the global entity was created

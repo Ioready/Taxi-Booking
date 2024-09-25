@@ -6,7 +6,7 @@ const path = require('path');
 // Create Global with Image Upload
 exports.createGlobal = [
   async (req, res) => {
-    const { title, status } = req.body;
+    const { title, value, status } = req.body;
     let img_url = null;
 
     try {
@@ -18,8 +18,8 @@ exports.createGlobal = [
 
       // Insert global record into the database
       const result = await db.query(
-        'INSERT INTO global (title, img_url, status) VALUES ($1, $2, $3) RETURNING *',
-        [title, img_url, status || 'active']  // Default status to 'active'
+        'INSERT INTO global (title, img_url, status, value) VALUES ($1, $2, $3, $4) RETURNING *',
+        [title, img_url, status || 'active', value]  // Default status to 'active'
       );
 
       if (result.rowCount === 1) {
@@ -47,7 +47,7 @@ exports.createGlobal = [
 exports.updateGlobal = [
   async (req, res) => {
     const global_id = req.params.global_id;
-    const { title, status } = req.body;
+    const { title, status, value } = req.body;
     let img_url = null;
 
     try {
@@ -65,13 +65,14 @@ exports.updateGlobal = [
 
       // Update parameters with current values if empty
       const updatedTitle = title || currentGlobal.title;
+      const updatedValue = value || currentGlobal.value;
       img_url = req.file ? `${process.env.DOMAIN}/uploads/global/${req.file.filename}` : currentGlobal.img_url;
       const updatedStatus = status || currentGlobal.status;
 
       // Perform the update operation
       const result = await db.query(
-        'UPDATE global SET title = $1, img_url = $2, status = $3 WHERE id = $4 RETURNING *',
-        [updatedTitle, img_url, updatedStatus, global_id]
+        'UPDATE global SET title = $1, img_url = $2, status = $3, value = $4 WHERE id = $5 RETURNING *',
+        [updatedTitle, img_url, updatedStatus, updatedValue, global_id]
       );
 
       if (result.rowCount === 1) {
